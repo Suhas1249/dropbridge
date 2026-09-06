@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DropBridge — Instant Zero-Knowledge Digital Bridge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">Drop<span>Bridge</span></div>
+      </div>
+      <div class="header-badges">
+        <div class="badge security-badge" title="End-to-End Encrypted via Web Crypto API">
+          <span class="badge-dot pulse-green"></span>
+          <span class="badge-text">🔒 AES-256 E2EE (Zero-Knowledge)</span>
+        </div>
+        <div id="peer-count-badge" class="badge peer-badge hidden">
+          <span class="badge-icon">📱💻</span>
+          <span id="peer-count-text">1 Device Connected</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- LANDING VIEW (Room Creation / Joining) -->
+    <main id="landing-view" class="view active">
+      <div class="hero-section">
+        <h1 class="hero-title">The fastest way to move anything between your devices.</h1>
+        <p class="hero-subtitle">Open → Connect → Drop → Appears instantly. No accounts. No setup. Zero logs.</p>
+
+        <div class="action-grid">
+          <!-- Create Bridge Card -->
+          <div class="action-card primary-card">
+            <div class="card-icon">🚀</div>
+            <h3>Create a New Bridge</h3>
+            <p>Generate an instant encrypted bridge and scan QR code with your phone.</p>
+            <button id="btn-create-room" class="btn btn-primary btn-glow">
+              <span>Create New Bridge</span>
+              <span class="btn-arrow">→</span>
+            </button>
+          </div>
+
+          <!-- Join Bridge Card -->
+          <div class="action-card secondary-card">
+            <div class="card-icon">🔑</div>
+            <h3>Join Existing Bridge</h3>
+            <p>Enter 6-character room code from your desktop screen.</p>
+            <div class="join-form">
+              <input type="text" id="input-room-code" placeholder="X7K92M" maxlength="6" autocomplete="off" spellcheck="false">
+              <button id="btn-join-room" class="btn btn-secondary">Join</button>
+            </div>
+            <div id="join-error" class="error-message hidden"></div>
+          </div>
+        </div>
+
+        <div class="feature-pills">
+          <span class="pill">⚡ Sub-50ms Realtime Sync</span>
+          <span class="pill">🔒 Browser AES-GCM-256</span>
+          <span class="pill">⏱️ 10s Reconnect Grace</span>
+          <span class="pill">🛡️ In-Memory RAM Only</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- ACTIVE BRIDGE VIEW -->
+    <main id="bridge-view" class="view hidden">
+      <!-- Pairing Header & QR Panel -->
+      <section class="pairing-panel">
+        <div class="pairing-main">
+          <div class="qr-container">
+            <div id="qrcode"></div>
+            <p class="qr-label">Scan to connect phone</p>
+          </div>
+
+          <div class="bridge-details">
+            <div class="detail-group">
+              <label>Room Code</label>
+              <div class="room-code-box">
+                <span id="display-room-code">------</span>
+                <button id="btn-copy-code" class="btn-icon" title="Copy Room Code">📋</button>
+              </div>
+            </div>
+
+            <div class="detail-group">
+              <label>Bridge Share Link</label>
+              <div class="share-link-box">
+                <input type="text" id="input-share-url" readonly>
+                <button id="btn-copy-link" class="btn btn-secondary btn-sm">Copy Link</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Privacy & Shoulder-Surfing Warning Banner -->
+        <div class="privacy-banner">
+          <span class="banner-icon">⚠️</span>
+          <span class="banner-text">
+            <strong>Privacy Notice:</strong> The encryption key is embedded in your URL fragment (`#key=...`). Anyone who scans this QR code or views your screen can read dropped items until session expires.
+          </span>
+        </div>
+      </section>
+
+      <!-- Interactive Drop Zone -->
+      <section class="drop-section">
+        <div id="drop-zone" class="drop-zone">
+          <div class="drop-content">
+            <div class="drop-icon">💧</div>
+            <h3>Drop Anything Here</h3>
+            <p>Drag & drop files, images, code, or links (Max 25MB)</p>
+            <div class="drop-actions">
+              <button id="btn-paste-clipboard" class="btn btn-secondary btn-sm">📋 Paste Clipboard</button>
+              <button id="btn-open-text-modal" class="btn btn-secondary btn-sm">✍️ Drop Text / Code</button>
+              <label class="btn btn-primary btn-sm file-input-label">
+                📁 Choose File
+                <input type="file" id="file-input" hidden>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live Stream Feed -->
+      <section class="feed-section">
+        <div class="feed-header">
+          <h2>Dropped Items</h2>
+          <div class="feed-controls">
+            <div class="filter-tabs">
+              <button class="tab active" data-filter="all">All</button>
+              <button class="tab" data-filter="text">Text & Code</button>
+              <button class="tab" data-filter="link">Links</button>
+              <button class="tab" data-filter="image">Images</button>
+              <button class="tab" data-filter="file">Files</button>
+            </div>
+            <button id="btn-clear-feed" class="btn btn-ghost btn-sm">Clear</button>
+          </div>
+        </div>
+
+        <!-- Feed List Container -->
+        <div id="feed-list" class="feed-list">
+          <div id="empty-feed" class="empty-state">
+            <div class="empty-icon">📱 ↔️ 💻</div>
+            <p>Waiting for items to be dropped...</p>
+            <small>Drop text, links, or files on one device to view instantly on the other.</small>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal for Text/Code Drop -->
+    <div id="text-modal" class="modal-overlay hidden">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Drop Text or Code</h3>
+          <button id="btn-close-modal" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <textarea id="modal-text-input" placeholder="Paste your links, code snippets, notes, or raw text here..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-cancel-modal" class="btn btn-ghost">Cancel</button>
+          <button id="btn-submit-modal" class="btn btn-primary">Encrypt & Drop</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="qrcode.min.js"></script>
+  <script src="crypto.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
