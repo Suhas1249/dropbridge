@@ -180,6 +180,18 @@ document.addEventListener('DOMContentLoaded', () => {
   // ----------------------------------------------------
   // SOCKET.IO EVENT HANDLERS
   // ----------------------------------------------------
+  state.socket.on('connect', () => {
+    if (state.roomCode) {
+      state.socket.emit('join_room', { roomCode: state.roomCode }, (res) => {
+        if (res && res.peerCount) {
+          state.peerCount = res.peerCount;
+          peerCountBadge.classList.remove('hidden');
+          peerCountText.textContent = res.peerCount === 1 ? '1 Device Connected' : `${res.peerCount} Devices Connected`;
+        }
+      });
+    }
+  });
+
   state.socket.on('peer_update', ({ peerCount }) => {
     state.peerCount = peerCount;
     peerCountBadge.classList.remove('hidden');

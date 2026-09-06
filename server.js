@@ -171,15 +171,19 @@ io.on('connection', (socket) => {
   // Event: Drop Encrypted Item
   socket.on('drop_item', ({ roomCode, encryptedPayload }, callback) => {
     const cb = typeof callback === 'function' ? callback : () => {};
+    const normalizedCode = (roomCode || '').trim().toUpperCase();
 
-    if (!currentRoomCode || currentRoomCode !== roomCode) {
-      return cb({ success: false, error: 'Not authorized or not in room.' });
-    }
-
-    const room = rooms.get(roomCode);
+    const room = rooms.get(normalizedCode);
     if (!room) {
       return cb({ success: false, error: 'Room expired or destroyed.' });
     }
+
+    // Ensure socket is registered in the room
+    if (!socket.rooms.has(normalizedCode)) {
+      socket.join(normalizedCode);
+      room.peers.add(socket.id);
+    }
+    currentRoomCode = normalizedCode;
 
     if (!encryptedPayload || typeof encryptedPayload !== 'object') {
       return cb({ success: false, error: 'Invalid payload format.' });
