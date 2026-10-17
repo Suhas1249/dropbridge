@@ -18,7 +18,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.19.2",
+    "express": "^4.22.3",
     "express-rate-limit": "^7.3.1",
     "socket.io": "^4.7.5"
   },
